@@ -1650,6 +1650,7 @@
     qStartTime: 0,
     qTimerH:    null,
     difficulty: '상',
+    topic:      '',
 
     qtimeMap:   { '상': 10, '하': 3 },
 
@@ -1758,6 +1759,43 @@
         osc.stop(st + 0.28);
       });
     } catch(e) {}
+  }
+
+  /* ══════════════════════════════════════════════════════
+     결과 저장 (Supabase DB)
+  ══════════════════════════════════════════════════════ */
+  async function saveSessionResult(ranking) {
+    try {
+      const { data: session, error: sessErr } = await _sbClient
+        .from('quiz_sessions')
+        .insert({
+          topic:        S.topic,
+          difficulty:   S.difficulty,
+          total_q:      S.questions.length,
+          player_count: ranking.length
+        })
+        .select('id')
+        .single();
+
+      if (sessErr) throw sessErr;
+
+      const rows = ranking.map((p, i) => ({
+        session_id:  session.id,
+        player_name: p.name,
+        score:       p.score,
+        rank:        i + 1
+      }));
+
+      const { error: resErr } = await _sbClient
+        .from('quiz_results')
+        .insert(rows);
+
+      if (resErr) throw resErr;
+
+      showToast('✅ 결과가 저장되었습니다.');
+    } catch (e) {
+      console.warn('[결과 저장 실패]', e.message);
+    }
   }
 
   /* ══════════════════════════════════════════════════════
@@ -2049,6 +2087,8 @@
         /* v6: 축하 사운드 */
         playCelebration();
         startRedirectCD(waitTime);
+        /* 관리자만 결과 DB 저장 */
+        if (S.isAdmin) saveSessionResult(ranking);
         break;
       }
 
