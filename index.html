@@ -519,11 +519,6 @@
         <div class="input-group">
           <label for="sel-topic">📚 주제</label>
           <select id="sel-topic" onchange="onTopicChange()">
-            <option value="[쪽지시험] 빅데이터와 인공지능">[쪽지시험] 빅데이터와 인공지능</option>
-            <option value="상식">상식</option>
-            <option value="역사">역사</option>
-            <option value="영어 단어 쪽지 시험">영어 단어 쪽지 시험</option>
-            <option value="연습 게임">🎮 연습 게임 (3문제)</option>
           </select>
         </div>
         <div class="input-group">
@@ -2071,6 +2066,14 @@
     _el('admin-panel').style.display   = 'block';
     _el('share-section').style.display = 'block';
     _el('share-url-box').textContent   = window.location.href;
+
+    // QUIZ_BANK 카테고리로 드롭다운 자동 생성
+    const selTopic = _el('sel-topic');
+    selTopic.innerHTML = Object.keys(QUIZ_BANK).map(key => {
+      const label = key === '연습 게임' ? `🎮 연습 게임 (3문제)` : key;
+      return `<option value="${key}">${label}</option>`;
+    }).join('');
+    onTopicChange();
 
     updatePlayerList([name]);
     updateTimerPreview();
